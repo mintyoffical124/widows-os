@@ -1,0 +1,910 @@
+<html><head><base href="https://www.example.com">
+<title>Victory Vanguard 3D - Battle Royale</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  #gameCanvas {
+    width: 100vw;
+    height: 100vh;
+    display: none;
+  }
+  
+  .menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    gap: 20px;
+  }
+
+  .menu h1 {
+    font-size: 48px;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .menu-button {
+    padding: 15px 30px;
+    font-size: 20px;
+    background: #3498db;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .menu-button:hover {
+    background: #2980b9;
+  }
+
+  .keybind-menu {
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.95);
+    padding: 30px;
+    border-radius: 15px;
+    color: white;
+    display: none;
+  }
+
+  .settings-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .settings-section h3 {
+    color: #3498db;
+    margin-bottom: 15px;
+  }
+
+  .keybind-row, .setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+    gap: 20px;
+  }
+
+  .keybind-row input[type="text"] {
+    padding: 5px 10px;
+    width: 120px;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .keybind-row input[type="text"]:focus {
+    outline: 2px solid #3498db;
+    background: #34495e;
+  }
+
+  .keybind-row input[type="text"]::placeholder {
+    color: rgba(255,255,255,0.5);
+  }
+
+  .keybind-row input[type="text"] {
+    padding: 5px;
+    width: 100px;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+  }
+
+  .setting-row input[type="range"] {
+    width: 200px;
+  }
+
+  .setting-row select {
+    padding: 5px;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+  }
+
+  .settings-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+
+  .keybind-menu::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .keybind-menu::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 5px;
+  }
+
+  .keybind-menu::-webkit-scrollbar-thumb {
+    background: #3498db;
+    border-radius: 5px;
+  }
+
+  .healthBar {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 200px;
+    height: 20px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 10px;
+    z-index: 1;
+  }
+  
+  .healthFill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+    border-radius: 10px;
+    transition: width 0.3s;
+  }
+  
+  .weapon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    color: white;
+    border-radius: 5px;
+    z-index: 1;
+  }
+  
+  .players-left {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    color: white;
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 1;
+  }
+  
+  .build-menu {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 1;
+  }
+  
+  .build-option {
+    padding: 10px 20px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .build-option:hover {
+    background: rgba(0,0,0,0.9);
+  }
+
+  .crosshair {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 24px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .skin-selector {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .skin-option {
+    padding: 15px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.3s;
+  }
+
+  .skin-option:hover {
+    background: rgba(255,255,255,0.2);
+  }
+
+  .skin-option.selected {
+    border: 2px solid #3498db;
+  }
+
+  /* Updated styles for shop and lobby */
+  .shop-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.95);
+    display: none;
+    padding: 30px;
+    color: white;
+    overflow-y: auto;
+  }
+
+  .vbucks-display {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    font-size: 18px;
+  }
+
+  .shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .shop-item {
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .shop-item button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: #3498db;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+  }
+
+  .lobby {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; 
+    height: 100vh;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    display: none;
+    padding: 30px;
+  }
+
+  .lobby-content {
+    max-width: 800px;
+    margin: 0 auto;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+  }
+
+  .lobby-players {
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+  }
+</style>
+</head>
+<body>
+<div class="menu" id="mainMenu">
+  <h1>Victory Vanguard</h1>
+  <div class="skin-selector">
+    <div class="skin-option" data-skin="default">
+      <div style="font-size: 40px">&#x1f468;</div>
+      <span>Default</span>
+    </div>
+    <div class="skin-option" data-skin="ninja">
+      <div style="font-size: 40px">&#x1f977;</div>
+      <span>Ninja</span>
+    </div>
+    <div class="skin-option" data-skin="soldier">
+      <div style="font-size: 40px">&#x1f482;</div>
+      <span>Soldier</span>
+    </div>
+    <div class="skin-option" data-skin="robot">
+      <div style="font-size: 40px">&#x1f916;</div>
+      <span>Robot</span>
+    </div>
+    <div class="skin-option" data-skin="alien">
+      <div style="font-size: 40px">&#x1f47d;</div>
+      <span>Alien</span>
+    </div>
+    <div class="skin-option" data-skin="zombie">
+      <div style="font-size: 40px">&#x1f9df;</div>
+      <span>Zombie</span>
+    </div>
+  </div>
+  <button class="menu-button" onclick="showKeybinds()">Configure Keybinds</button>
+  <button class="menu-button" onclick="startGame()">Play Game</button>
+  <button class="menu-button" onclick="showSettings()">Settings</button>
+  <button class="menu-button" onclick="showShop()">Item Shop</button>
+  <button class="menu-button" onclick="showLobby()">Enter Lobby</button>
+</div>
+
+<div class="keybind-menu" id="settingsMenu">
+  <h2>Settings</h2>
+  
+  <div class="settings-section">
+    <h3>Keybinds</h3>
+    <div class="keybind-row">
+      <span>Wall:</span>
+      <input type="text" id="wallBind" value="q" placeholder="Press any key or button...">
+    </div>
+    <div class="keybind-row">
+      <span>Ramp:</span>
+      <input type="text" id="rampBind" value="e" placeholder="Press any key or button...">
+    </div>
+    <div class="keybind-row">
+      <span>Floor:</span>
+      <input type="text" id="floorBind" value="c" placeholder="Press any key or button...">
+    </div>
+    <div class="keybind-row"> 
+      <span>Pyramid:</span>
+      <input type="text" id="pyramidBind" value="v" placeholder="Press any key or button...">
+    </div>
+    <div class="keybind-row">
+      <span>Inventory:</span>
+      <input type="text" id="inventoryBind" value="tab" placeholder="Press any key or button...">
+    </div>
+    <div class="keybind-row">
+      <span>Map:</span>
+      <input type="text" id="mapBind" value="m" placeholder="Press any key or button...">
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>Weapon Slots</h3>
+    <div class="keybind-row">
+      <span>Weapon Slot 1:</span>
+      <input type="text" id="weaponSlot1" value="1" placeholder="Press any key or button...">
+    </div>
+    <div class="keybind-row">
+      <span>Weapon Slot 2:</span>
+      <input type="text" id="weaponSlot2" value="2" placeholder="Press any key or button...">
+    </div>
+    <div class="keybind-row">
+      <span>Weapon Slot 3:</span>
+      <input type="text" id="weaponSlot3" value="3" placeholder="Press any key or button...">
+    </div>
+    <div class="keybind-row">
+      <span>Weapon Slot 4:</span>
+      <input type="text" id="weaponSlot4" value="4" placeholder="Press any key or button...">
+    </div>
+    <div class="keybind-row">
+      <span>Weapon Slot 5:</span>
+      <input type="text" id="weaponSlot5" value="5" placeholder="Press any key or button...">
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>Video Settings</h3>
+    <div class="setting-row">
+      <span>Quality:</span>
+      <select id="qualitySettings">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+        <option value="ultra">Ultra</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <span>View Distance:</span>
+      <input type="range" id="viewDistance" min="50" max="1000" value="500">
+    </div>
+    <div class="setting-row">
+      <span>Shadows:</span>
+      <input type="checkbox" id="shadowsEnabled" checked>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>Audio Settings</h3>
+    <div class="setting-row">
+      <span>Master Volume:</span>
+      <input type="range" id="masterVolume" min="0" max="100" value="100">
+    </div>
+    <div class="setting-row">
+      <span>Effects Volume:</span>
+      <input type="range" id="effectsVolume" min="0" max="100" value="80">
+    </div>
+    <div class="setting-row">
+      <span>Music Volume:</span>
+      <input type="range" id="musicVolume" min="0" max="100" value="50">
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>Game Settings</h3>
+    <div class="setting-row">
+      <span>Mouse Sensitivity:</span>
+      <input type="range" id="sensitivity" min="1" max="100" value="50">
+    </div>
+    <div class="setting-row">
+      <span>Auto-Sprint:</span>
+      <input type="checkbox" id="autoSprint">
+    </div>
+    <div class="setting-row">
+      <span>Show FPS:</span>
+      <input type="checkbox" id="showFPS">
+    </div>
+  </div>
+
+  <div class="settings-buttons">
+    <button class="menu-button" onclick="saveSettings()">Save Changes</button>
+    <button class="menu-button" onclick="resetDefaults()">Reset to Default</button>
+    <button class="menu-button" onclick="closeSettings()">Close</button>
+  </div>
+</div>
+
+<div class="shop-menu" id="shopMenu">
+  <h2>Item Shop</h2>
+  <div class="shop-grid" id="shopGrid">
+  </div>
+  <button class="menu-button" onclick="closeShop()">Close</button>
+</div>
+
+<div class="lobby" id="lobbyScreen">
+  <div class="lobby-content">
+    <h2>Game Lobby</h2>
+    <div class="lobby-players">
+      <h3>Players</h3>
+      <div id="lobbyPlayerList"></div>
+    </div>
+    <button class="menu-button" onclick="startMatch()">Ready Up</button>
+    <button class="menu-button" onclick="leaveLobby()">Leave Lobby</button>
+  </div>
+</div>
+
+<div class="vbucks-display">
+  V-Bucks: <span id="vbucksAmount">0</span>
+</div>
+
+<div id="gameCanvas"></div>
+<div class="healthBar">
+  <div class="healthFill"></div>
+</div>
+<div class="weapon">
+  Assault Rifle &#x2694;&#xfe0f;
+</div>
+<div class="players-left">
+  Players Remaining: 100
+</div>
+<div class="build-menu">
+  <button class="build-option">Wall</button>
+  <button class="build-option">Ramp</button>
+  <button class="build-option">Floor</button>
+  <button class="build-option">Pyramid</button>
+</div>
+<div class="crosshair">+</div>
+
+<script>let skinOptions = {
+  default: {
+    color: 0xFFE0BD
+  },
+  ninja: {
+    color: 0x000000
+  },
+  soldier: {
+    color: 0x355E3B
+  },
+  robot: {
+    color: 0xC0C0C0
+  },
+  alien: {
+    color: 0x00FF00
+  },
+  zombie: {
+    color: 0x355E3B
+  }
+};
+let selectedSkin = 'default';
+let keybinds = {
+  wall: 'q',
+  ramp: 'e',
+  floor: 'c',
+  pyramid: 'v',
+  inventory: 'tab',
+  map: 'm',
+  weaponSlot1: '1',
+  weaponSlot2: '2',
+  weaponSlot3: '3',
+  weaponSlot4: '4',
+  weaponSlot5: '5'
+};
+function showKeybinds() {
+  document.getElementById('settingsMenu').style.display = 'block';
+  document.getElementById('mainMenu').style.display = 'none';
+}
+function showSettings() {
+  document.getElementById('settingsMenu').style.display = 'block';
+  document.getElementById('mainMenu').style.display = 'none';
+}
+function closeSettings() {
+  document.getElementById('settingsMenu').style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'flex';
+}
+function resetDefaults() {
+  document.getElementById('wallBind').value = 'q';
+  document.getElementById('rampBind').value = 'e';
+  document.getElementById('floorBind').value = 'c';
+  document.getElementById('pyramidBind').value = 'v';
+  document.getElementById('inventoryBind').value = 'tab';
+  document.getElementById('mapBind').value = 'm';
+  document.getElementById('weaponSlot1').value = '1';
+  document.getElementById('weaponSlot2').value = '2';
+  document.getElementById('weaponSlot3').value = '3';
+  document.getElementById('weaponSlot4').value = '4';
+  document.getElementById('weaponSlot5').value = '5';
+}
+function showShop() {
+  document.getElementById('shopMenu').style.display = 'block';
+  document.getElementById('mainMenu').style.display = 'none';
+  if (!document.getElementById('shopGrid').children.length) {
+    populateShop();
+  }
+}
+function closeShop() {
+  document.getElementById('shopMenu').style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'flex';
+}
+function populateShop() {
+  const shopItems = [{
+    name: "Battle Pass",
+    price: 950,
+    type: "pass"
+  }, {
+    name: "Ninja Skin",
+    price: 1200,
+    type: "skin"
+  }, {
+    name: "Robot Skin",
+    price: 1500,
+    type: "skin"
+  }, {
+    name: "Alien Skin",
+    price: 2000,
+    type: "skin"
+  }, {
+    name: "Zombie Skin",
+    price: 1800,
+    type: "skin"
+  }, {
+    name: "1000 V-Bucks",
+    price: 7.99,
+    type: "vbucks"
+  }];
+  const shopGrid = document.getElementById('shopGrid');
+  shopItems.forEach(item => {
+    const itemElement = document.createElement('div');
+    itemElement.className = 'shop-item';
+    itemElement.innerHTML = `
+      <h3>${item.name}</h3>
+      <p>${item.type === 'vbucks' ? '$' : ''}${item.price} ${item.type === 'vbucks' ? '' : 'V-Bucks'}</p>
+      <button onclick="purchaseItem('${item.name}', ${item.price}, '${item.type}')">Purchase</button>
+    `;
+    shopGrid.appendChild(itemElement);
+  });
+}
+function purchaseItem(name, price, type) {
+  const currentVBucks = parseInt(document.getElementById('vbucksAmount').textContent);
+  if (type === 'vbucks') {
+    document.getElementById('vbucksAmount').textContent = currentVBucks + 1000;
+    alert('Thank you for your purchase! 1000 V-Bucks have been added to your account.');
+  } else if (currentVBucks >= price) {
+    document.getElementById('vbucksAmount').textContent = currentVBucks - price;
+    alert(`Successfully purchased ${name}!`);
+  } else {
+    alert('Insufficient V-Bucks!');
+  }
+}
+function showLobby() {
+  document.getElementById('lobbyScreen').style.display = 'block';
+  document.getElementById('mainMenu').style.display = 'none';
+  populateLobbyPlayers();
+}
+function leaveLobby() {
+  document.getElementById('lobbyScreen').style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'flex';
+}
+function populateLobbyPlayers() {
+  const playerList = document.getElementById('lobbyPlayerList');
+  playerList.innerHTML = '';
+  const players = [{
+    name: 'You',
+    skin: selectedSkin
+  }, {
+    name: 'Player123',
+    skin: 'default'
+  }, {
+    name: 'ProGamer',
+    skin: 'ninja'
+  }, {
+    name: 'Bot_01',
+    skin: 'robot'
+  }];
+  players.forEach(player => {
+    const playerElement = document.createElement('div');
+    playerElement.innerHTML = `${player.name} (${player.skin})`;
+    playerList.appendChild(playerElement);
+  });
+}
+function startGame() {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('gameCanvas').style.display = 'block';
+  game.start();
+}
+function startMatch() {
+  document.getElementById('lobbyScreen').style.display = 'none';
+  document.getElementById('gameCanvas').style.display = 'block';
+  game.start();
+}
+class Inventory {
+  constructor() {
+    this.items = [];
+    this.materials = {
+      wood: 0,
+      brick: 0,
+      metal: 0
+    };
+    this.maxMaterials = 999;
+    this.currentWeapon = null;
+  }
+  addItem(item) {
+    if (this.items.length < 5) {
+      this.items.push(item);
+      return true;
+    }
+    return false;
+  }
+  addMaterials(type, amount) {
+    this.materials[type] = Math.min(this.materials[type] + amount, this.maxMaterials);
+  }
+}
+class GameMap {
+  constructor() {
+    this.pois = [{
+      name: "Pleasant Park",
+      position: new THREE.Vector3(-80, 0, -80)
+    }, {
+      name: "Tilted Towers",
+      position: new THREE.Vector3(0, 0, 0)
+    }, {
+      name: "Retail Row",
+      position: new THREE.Vector3(80, 0, 80)
+    }, {
+      name: "Salty Springs",
+      position: new THREE.Vector3(-40, 0, 40)
+    }, {
+      name: "Lazy Lake",
+      position: new THREE.Vector3(40, 0, -40)
+    }];
+    this.isOpen = false;
+    this.createMapUI();
+  }
+  createMapUI() {
+    this.mapElement = document.createElement('div');
+    this.mapElement.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80vw;
+      height: 80vh;
+      background: rgba(0,0,0,0.9);
+      border-radius: 10px;
+      display: none;
+      z-index: 100;
+    `;
+    document.body.appendChild(this.mapElement);
+    this.pois.forEach(poi => {
+      const poiMarker = document.createElement('div');
+      poiMarker.style.cssText = `
+        position: absolute;
+        left: ${(poi.position.x + 100) / 200 * 100}%;
+        top: ${(poi.position.z + 100) / 200 * 100}%;
+        color: white;
+        cursor: pointer;
+      `;
+      poiMarker.innerHTML = `
+        <div class="poi-marker">📍</div>
+        <div class="poi-name">${poi.name}</div>
+      `;
+      this.mapElement.appendChild(poiMarker);
+    });
+  }
+  toggle() {
+    this.isOpen = !this.isOpen;
+    this.mapElement.style.display = this.isOpen ? 'block' : 'none';
+  }
+}
+class Game {
+  constructor() {
+    this.playersCount = 100;
+    this.players = [];
+    this.health = 100;
+    this.shield = 0;
+    this.maxShield = 100;
+    this.inventory = new Inventory();
+    this.map = new GameMap();
+    this.setupThreeJS();
+    this.setupControls();
+    this.createEnvironment();
+    this.createPlayerCharacter();
+    this.spawnChests();
+    this.inventoryOpen = false;
+    this.setupWeaponSlots();
+    this.animate();
+  }
+  setupThreeJS() {
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.renderer = new THREE.WebGLRenderer();
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('gameCanvas').appendChild(this.renderer.domElement);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    this.scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(0, 50, 0);
+    this.scene.add(directionalLight);
+    this.camera.position.set(0, 3, 10);
+    this.cameraOffset = new THREE.Vector3(0, 3, 10);
+  }
+  createEnvironment() {
+    const groundGeometry = new THREE.PlaneGeometry(1000, 1000);
+    const groundMaterial = new THREE.MeshStandardMaterial({
+      color: 0x3a8c3a,
+      roughness: 0.8
+    });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    this.scene.add(ground);
+    for (let i = 0; i < 50; i++) {
+      const height = Math.random() * 10 + 5;
+      const geometry = new THREE.BoxGeometry(4, height, 4);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x808080
+      });
+      const building = new THREE.Mesh(geometry, material);
+      building.position.x = Math.random() * 200 - 100;
+      building.position.z = Math.random() * 200 - 100;
+      building.position.y = height / 2;
+      this.scene.add(building);
+    }
+  }
+  createPlayerCharacter() {
+    const bodyGeometry = new THREE.BoxGeometry(1, 2, 1);
+    const skinData = skinOptions[selectedSkin];
+    const bodyMaterial = new THREE.MeshStandardMaterial({
+      color: skinData.color
+    });
+    this.playerBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    this.scene.add(this.playerBody);
+  }
+  setupControls() {
+    document.querySelectorAll('.keybind-row input[type="text"]').forEach(input => {
+      input.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        if (e.button === 3 || e.button === 4) {
+          this.value = `Mouse${e.button}`;
+          this.blur();
+        }
+      });
+      input.addEventListener('keydown', function (e) {
+        e.preventDefault();
+        this.value = e.key;
+        this.blur();
+      });
+    });
+    const keybinds = {
+      wall: 'q',
+      ramp: 'e',
+      floor: 'c',
+      pyramid: 'v',
+      inventory: 'tab',
+      map: 'm',
+      weaponSlot1: '1',
+      weaponSlot2: '2',
+      weaponSlot3: '3',
+      weaponSlot4: '4',
+      weaponSlot5: '5'
+    };
+    document.addEventListener('keydown', e => {
+      const key = e.key;
+      if (keybinds.weaponSlot1 === key) this.switchWeapon(0);
+      if (keybinds.weaponSlot2 === key) this.switchWeapon(1);
+      if (keybinds.weaponSlot3 === key) this.switchWeapon(2);
+      if (keybinds.weaponSlot4 === key) this.switchWeapon(3);
+      if (keybinds.weaponSlot5 === key) this.switchWeapon(4);
+    });
+    document.addEventListener('mousedown', e => {
+      const buttonName = `Mouse${e.button}`;
+      if (keybinds.weaponSlot1 === buttonName) this.switchWeapon(0);
+      if (keybinds.weaponSlot2 === buttonName) this.switchWeapon(1);
+      if (keybinds.weaponSlot3 === buttonName) this.switchWeapon(2);
+      if (keybinds.weaponSlot4 === buttonName) this.switchWeapon(3);
+      if (keybinds.weaponSlot5 === buttonName) this.switchWeapon(4);
+    });
+  }
+  toggleInventory() {
+    if (!this.inventoryOpen) {
+      console.log("Inventory opened");
+      this.inventoryOpen = true;
+    } else {
+      console.log("Inventory closed");
+      this.inventoryOpen = false;
+    }
+  }
+  setupWeaponSlots() {
+    document.addEventListener('keydown', e => {
+      const key = e.key;
+      if (keybinds.weaponSlot1 === key) this.switchWeapon(0);
+      if (keybinds.weaponSlot2 === key) this.switchWeapon(1);
+      if (keybinds.weaponSlot3 === key) this.switchWeapon(2);
+      if (keybinds.weaponSlot4 === key) this.switchWeapon(3);
+      if (keybinds.weaponSlot5 === key) this.switchWeapon(4);
+    });
+  }
+  switchWeapon(slot) {
+    if (this.inventory.items[slot]) {
+      this.inventory.currentWeapon = slot;
+      console.log(`Switched to weapon slot ${slot + 1}`);
+      document.querySelector('.weapon').textContent = `${this.inventory.items[slot].name} ⚔️`;
+    }
+  }
+  animate() {
+    requestAnimationFrame(() => this.animate());
+    this.renderer.render(this.scene, this.camera);
+  }
+}
+function saveSettings() {
+  keybinds.wall = document.getElementById('wallBind').value;
+  keybinds.ramp = document.getElementById('rampBind').value;
+  keybinds.floor = document.getElementById('floorBind').value;
+  keybinds.pyramid = document.getElementById('pyramidBind').value;
+  keybinds.inventory = document.getElementById('inventoryBind').value;
+  keybinds.map = document.getElementById('mapBind').value;
+  keybinds.weaponSlot1 = document.getElementById('weaponSlot1').value;
+  keybinds.weaponSlot2 = document.getElementById('weaponSlot2').value;
+  keybinds.weaponSlot3 = document.getElementById('weaponSlot3').value;
+  keybinds.weaponSlot4 = document.getElementById('weaponSlot4').value;
+  keybinds.weaponSlot5 = document.getElementById('weaponSlot5').value;
+  closeSettings();
+}
+const game = new Game();</script>
+</body>
+</html>
